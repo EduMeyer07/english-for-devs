@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English for Devs - Portal Interativo</title>
+    <!-- Tailwind CSS para estilização rápida e moderna -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome para Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Efeito Flip 3D para os Flashcards */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .preserve-3d {
+            transform-style: preserve-3d;
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+        
+        /* Custom scrollbar para parecer um editor de código */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+    </style>
+</head>
+<body class="bg-[#020617] text-slate-100 font-sans min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+
+    <!-- Header / Navbar -->
+    <header class="border-b border-slate-800 bg-[#070d19]/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                    <i class="fa-solid fa-code text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg tracking-tight">English for Devs</h1>
+                    <p class="text-xs text-indigo-400 font-mono">git commit -m "learning"</p>
+                </div>
+            </div>
+            <!-- Painel de Progresso Rápido -->
+            <div class="flex items-center gap-4 bg-slate-900/80 border border-slate-800 rounded-full py-1.5 px-4">
+                <span class="text-xs text-slate-400 font-medium">Progresso:</span>
+                <div class="w-24 bg-slate-800 h-2 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="bg-gradient-to-r from-indigo-500 to-cyan-500 h-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <span id="progress-text" class="text-xs font-mono font-bold text-cyan-400">0 / 20</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="max-w-6xl mx-auto px-4 py-8 flex-grow w-full flex flex-col gap-8">
+        
+        <!-- Welcome banner -->
+        <section class="bg-gradient-to-r from-slate-900 via-[#0b1329] to-slate-900 border border-slate-800/80 rounded-2xl p-6 md:p-8 relative overflow-hidden">
+            <div class="absolute -right-10 -top-10 w-40 h-40 bg-indigo-500/10 rounded-full filter blur-3xl"></div>
+            <div class="absolute -left-10 -bottom-10 w-40 h-40 bg-cyan-500/10 rounded-full filter blur-3xl"></div>
+            
+            <div class="max-w-2xl relative z-10">
+                <span class="bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">MVP Ativo</span>
+                <h2 class="text-2xl md:text-3xl font-bold mt-3 mb-2">Destrave seu inglês técnico de programação</h2>
+                <p class="text-slate-400 text-sm md:text-base leading-relaxed">
+                    Estude termos reais de TI aplicados diretamente em blocos de código. Clique no card para revelar a tradução e marque as palavras dominadas para acompanhar sua evolução.
+                </p>
+            </div>
+        </section>
+
+        <!-- Seção do Flashcard Principal -->
+        <section class="flex flex-col items-center py-4">
+            <div class="w-full max-w-xl">
+                
+                <!-- Área do Flashcard Rotacionável -->
+                <div id="flashcard-container" class="perspective-1000 w-full h-[380px] cursor-pointer group">
+                    <div id="flashcard-inner" class="preserve-3d relative w-full h-full duration-500 ease-out transition-transform">
+                        
+                        <!-- Lado da Frente (Inglês) -->
+                        <div class="backface-hidden absolute w-full h-full bg-[#0b1329] border-2 border-slate-800 rounded-2xl p-8 flex flex-col justify-between shadow-2xl group-hover:border-indigo-500/50 transition-colors">
+                            <div class="flex justify-between items-center">
+                                <span id="card-front-category" class="text-xs font-mono text-indigo-400 uppercase tracking-widest bg-indigo-950/40 border border-indigo-900/50 px-2.5 py-1 rounded-md">Categoria</span>
+                                <span class="text-xs text-slate-500 flex items-center gap-1.5 font-medium">
+                                    <i class="fa-solid fa-rotate"></i> Clique para revelar
+                                </span>
+                            </div>
+                            
+                            <div class="text-center my-auto flex flex-col gap-2">
+                                <h3 id="card-front-word" class="text-4xl md:text-5xl font-extrabold tracking-tight text-white">Word</h3>
+                                <p class="text-slate-500 text-sm italic">Como se diz no dia a dia dev</p>
+                            </div>
+                            
+                            <div class="flex justify-between items-center text-xs text-slate-500 font-mono">
+                                <span>CARD <span id="card-current-index">1</span> OF <span id="card-total-count">20</span></span>
+                                <span id="card-front-status" class="flex items-center gap-1 text-slate-500">
+                                    <i class="fa-regular fa-circle"></i> Não dominado
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Lado de Trás (Português & Exemplo de Código) -->
+                        <div class="backface-hidden rotate-y-180 absolute w-full h-full bg-[#0b1329] border-2 border-indigo-600 rounded-2xl p-6 flex flex-col justify-between shadow-2xl">
+                            <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+                                <span id="card-back-translation" class="text-lg font-bold text-cyan-400">Tradução</span>
+                                <span class="text-xs text-slate-500 flex items-center gap-1.5 font-medium">
+                                    <i class="fa-solid fa-rotate"></i> Clique para voltar
+                                </span>
+                            </div>
+                            
+                            <!-- Definição & Código -->
+                            <div class="my-auto flex flex-col gap-3 py-2 overflow-y-auto max-h-[220px] pr-1">
+                                <div>
+                                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Significado:</h4>
+                                    <p id="card-back-definition" class="text-sm text-slate-300 leading-relaxed">Definição detalhada.</p>
+                                </div>
+                                
+                                <div>
+                                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">No Código:</h4>
+                                    <div class="bg-slate-950 rounded-lg p-3 border border-slate-800 overflow-x-auto relative">
+                                        <div class="absolute right-2 top-2 text-[10px] text-slate-600 font-mono">code snippet</div>
+                                        <pre class="text-xs text-emerald-400 font-mono whitespace-pre-wrap" id="card-back-code">code block</pre>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Contexto Real:</h4>
+                                    <p id="card-back-context" class="text-xs text-slate-400 italic">Contexto da palavra.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-between items-center text-xs text-slate-500 pt-2 border-t border-slate-800 font-mono">
+                                <span id="card-back-category" class="uppercase">CATEGORIA</span>
+                                <span id="card-back-status" class="flex items-center gap-1 text-slate-500">
+                                    <i class="fa-regular fa-circle"></i> Não dominado
+                                </span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Botões de Controle do Card -->
+                <div class="flex justify-between items-center mt-6 gap-3">
+                    <button id="btn-prev" class="bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 p-3 rounded-xl transition duration-200 active:scale-95 flex items-center justify-center gap-2 flex-1">
+                        <i class="fa-solid fa-arrow-left"></i> Anterior
+                    </button>
+                    
+                    <button id="btn-mastered" class="bg-slate-900 border border-slate-800 hover:border-emerald-500 hover:text-emerald-400 text-slate-300 py-3 px-4 rounded-xl transition duration-200 active:scale-95 flex items-center justify-center gap-2 flex-1 font-semibold text-sm">
+                        <i class="fa-regular fa-circle-check text-lg"></i> <span id="btn-mastered-text">Dominado</span>
+                    </button>
+                    
+                    <button id="btn-next" class="bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 p-3 rounded-xl transition duration-200 active:scale-95 flex items-center justify-center gap-2 flex-1">
+                        Próximo <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Painel de Busca e Lista Completa (O Dicionário) -->
+        <section class="border-t border-slate-800/80 pt-8 flex flex-col gap-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h3 class="text-xl font-bold">Dicionário de Termos</h3>
+                    <p class="text-sm text-slate-500">Busque rapidamente o significado ou clique em qualquer palavra para abrir no flashcard acima.</p>
+                </div>
+                
+                <!-- Input de Busca Dinâmica -->
+                <div class="relative w-full md:max-w-xs">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+                    <input id="search-input" type="text" placeholder="Buscar palavra, tradução ou categoria..." class="w-full bg-[#0b1329] border border-slate-800 rounded-xl py-2.5 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors">
+                </div>
+            </div>
+
+            <!-- Filtros por Categoria -->
+            <div id="category-filters" class="flex flex-wrap gap-2">
+                <button data-cat="all" class="cat-btn bg-indigo-600 text-white border border-indigo-500/30 text-xs px-3 py-1.5 rounded-lg font-semibold transition active:scale-95">Todos</button>
+                <button data-cat="Lógica de Programação" class="cat-btn bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800 text-xs px-3 py-1.5 rounded-lg transition active:scale-95">Lógica de Programação</button>
+                <button data-cat="Funções" class="cat-btn bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800 text-xs px-3 py-1.5 rounded-lg transition active:scale-95">Funções</button>
+                <button data-cat="APIs / Web" class="cat-btn bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800 text-xs px-3 py-1.5 rounded-lg transition active:scale-95">APIs / Web</button>
+                <button data-cat="Tipos de Dados" class="cat-btn bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800 text-xs px-3 py-1.5 rounded-lg transition active:scale-95">Tipos de Dados</button>
+                <button data-cat="DevOps" class="cat-btn bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800 text-xs px-3 py-1.5 rounded-lg transition active:scale-95">DevOps</button>
+            </div>
+
+            <!-- Lista de Termos renderizada em Grid -->
+            <div id="terms-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Injetado dinamicamente via JS -->
+            </div>
+            
+            <div id="no-results" class="hidden text-center py-8 text-slate-500">
+                <i class="fa-regular fa-face-frown text-3xl mb-2 block"></i>
+                <p>Nenhuma palavra encontrada com esses filtros.</p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="border-t border-slate-900 bg-slate-950 py-6 mt-12 text-center text-xs text-slate-600 font-mono">
+        <p>English for Devs © 2026 - Desenvolvido para portfólio</p>
+        <p class="mt-1 text-slate-700">Abra o terminal do navegador (F12) para inspecionar o código!</p>
+    </footer>
+
+    <!-- Script de Funcionamento e Banco de Dados Integrado -->
+    <script>
+        // Banco de Dados JSON local com os 20 termos
+        const wordsDatabase = [
+            {
+                id: 1,
+                word: "Assign",
+                translation: "Atribuir",
+                definition: "O ato de definir ou guardar um valor dentro de uma variável.",
+                category: "Lógica de Programação",
+                code_example: "let score = 10; // Assigning 10 to 'score'",
+                context: "Usado sempre que você define dados. O operador '=' é o símbolo de atribuição."
+            },
+            {
+                id: 2,
+                word: "Callback",
+                translation: "Retorno de chamada",
+                definition: "Uma função que é passada como argumento para outra função, para ser executada depois que algum evento ocorra.",
+                category: "Funções",
+                code_example: "button.addEventListener('click', () => {\n  console.log('Clicked!');\n});",
+                context: "Muito comum em JavaScript e programação assíncrona."
+            },
+            {
+                id: 3,
+                word: "Deploy",
+                translation: "Implantar / Publicar",
+                definition: "O processo de colocar um sistema ou site no ar para que os usuários possam acessar.",
+                category: "DevOps",
+                code_example: "npm run build && vercel deploy",
+                context: "Dizer 'fazer deploy' significa enviar suas alterações locais para o servidor de produção."
+            },
+            {
+                id: 4,
+                word: "Deprecated",
+                translation: "Descontinuado",
+                definition: "Recursos que ainda funcionam, mas não são mais recomendados e serão removidos no futuro.",
+                category: "Lógica de Programação",
+                code_example: "// Warning: 'substr()' is deprecated.\n// Use 'substring()' instead.",
+                context: "Se ver esse aviso, planeje atualizar seu código para evitar quebras em atualizações futuras."
+            },
+            {
+                id: 5,
+                word: "Endpoint",
+                translation: "Ponto de extremidade / Rota",
+                definition: "A URL específica onde uma API recebe requisições e envia respostas.",
+                category: "APIs / Web",
+                code_example: "fetch('https://api.github.com/users/octocat');",
+                context: "Ex: 'Qual é o endpoint de login da nossa API?'."
+            },
+            {
+                id: 6,
+                word: "Feature",
+                translation: "Funcionalidade / Recurso",
+                definition: "Uma nova capacidade ou função adicionada a um software.",
+                category: "Lógica de Programação",
+                code_example: "git checkout -b feature/dark-mode",
+                context: "Exemplo: 'Qual nova feature vamos entregar nessa sprint?'"
+            },
+            {
+                id: 7,
+                word: "Handle",
+                translation: "Lidar com / Tratar",
+                definition: "O ato de capturar e processar um evento, erro ou ação do usuário para evitar bugs.",
+                category: "Lógica de Programação",
+                code_example: "try {\n  saveData();\n} catch (error) {\n  handleError(error);\n}",
+                context: "Funções que cuidam de cliques ou envios costumam se chamar handlers (ex: handleClick)."
+            },
+            {
+                id: 8,
+                word: "Loop",
+                translation: "Laço de repetição",
+                definition: "Estrutura de controle que repete um bloco de código enquanto uma condição for verdadeira.",
+                category: "Lógica de Programação",
+                code_example: "for (let i = 0; i < 5; i++) {\n  console.log(i);\n}",
+                context: "Essencial para percorrer listas de dados de forma automática."
+            },
+            {
+                id: 9,
+                word: "Mock",
+                translation: "Simulação / Dados fictícios",
+                definition: "Criar versões falsas, mas realistas de dados para testes ou desenvolvimento.",
+                category: "Lógica de Programação",
+                code_example: "const mockUser = {\n  id: 1,\n  name: 'John Doe'\n};",
+                context: "Útil quando você precisa testar um layout, mas a API real ainda não está pronta."
+            },
+            {
+                id: 10,
+                word: "Null",
+                translation: "Nulo / Ausência de valor",
+                definition: "Um valor especial que representa a ausência intencional de qualquer objeto ou valor.",
+                category: "Tipos de Dados",
+                code_example: "let currentUser = null; // Nobody logged in",
+                context: "Diferente de 'undefined', null é definido propositalmente pelo programador como vazio."
+            },
+            {
+                id: 11,
+                word: "Override",
+                translation: "Sobrescrever",
+                definition: "O ato de redefinir o comportamento de um método que foi herdado de uma classe pai.",
+                category: "Lógica de Programação",
+                code_example: "class Dog extends Animal {\n  makeSound() { console.log('Bark!'); }\n}",
+                context: "Usado para herdar uma regra, mas alterar sua execução específica na classe filha."
+            },
+            {
+                id: 12,
+                word: "Payload",
+                translation: "Carga útil de dados",
+                definition: "A parte essencial de dados enviados ou recebidos em uma requisição HTTP.",
+                category: "APIs / Web",
+                code_example: "// HTTP Request Payload:\n{ 'name': 'Laptop', 'price': 999 }",
+                context: "Em termos de transporte, payload é o conteúdo do pacote, desconsiderando a embalagem."
+            },
+            {
+                id: 13,
+                word: "Query",
+                translation: "Consulta",
+                definition: "Uma solicitação de informações feita a um banco de dados.",
+                category: "APIs / Web",
+                code_example: "SELECT * FROM users WHERE active = true;",
+                context: "Usado para ler ou filtrar informações guardadas no banco de dados."
+            },
+            {
+                id: 14,
+                word: "Refactor",
+                translation: "Refatorar",
+                definition: "Reescrever o código para deixá-lo mais legível, limpo e rápido, sem alterar seu funcionamento.",
+                category: "Lógica de Programação",
+                code_example: "// Before: a + b;\n// Refactored: sum(a, b);",
+                context: "É como arrumar a casa após terminar a obra, deixando o projeto sustentável."
+            },
+            {
+                id: 15,
+                word: "Scope",
+                translation: "Escopo",
+                definition: "A área do código onde uma variável ou função é visível e utilizável.",
+                category: "Lógica de Programação",
+                code_example: "function show() {\n  let local = 'Secret';\n}\n// 'local' is not accessible here",
+                context: "Garante o isolamento de dados no código, impedindo colisões de nomes."
+            },
+            {
+                id: 16,
+                word: "State",
+                translation: "Estado",
+                definition: "A representação da situação dos dados de um aplicativo em um momento específico.",
+                category: "Tipos de Dados",
+                code_example: "const [count, setCount] = useState(0);",
+                context: "Conceito fundamental no desenvolvimento de telas modernas (React, Vue, Flutter)."
+            },
+            {
+                id: 17,
+                word: "Thread",
+                translation: "Fio de execução",
+                definition: "A menor unidade de processamento que o sistema operacional executa por vez.",
+                category: "DevOps",
+                code_example: "// JS is single-threaded (executes sequentially)",
+                context: "Diferencia o processamento em lotes individuais ou em paralelo (multithread)."
+            },
+            {
+                id: 18,
+                word: "Utility / Helper",
+                translation: "Utilitário / Auxiliar",
+                definition: "Funções genéricas feitas para resolver tarefas cotidianas repetitivas.",
+                category: "Funções",
+                code_example: "export const formatCurrency = (val) => val.toFixed(2);",
+                context: "Organizadas comumente em pastas chamadas '/utils' ou '/helpers'."
+            },
+            {
+                id: 19,
+                word: "Void",
+                translation: "Vazio",
+                definition: "Indica que uma determinada função não retorna valor algum a quem a chamou.",
+                category: "Tipos de Dados",
+                code_example: "function logMessage(msg: string): void {\n  console.log(msg);\n}",
+                context: "Diz que a função apenas executa uma ação, sem 'responder' com novos dados."
+            },
+            {
+                id: 20,
+                word: "Wrap",
+                translation: "Envolver / Embrulhar",
+                definition: "O ato de empacotar um componente ou bloco de lógica dentro de outro.",
+                category: "Lógica de Programação",
+                code_example: "<Provider>\n  <App />\n</Provider>",
+                context: "Usado para aplicar estilos, comportamentos globais ou tratativas ao redor de blocos de código."
+            }
+        ];
+
+        // Estado do App (Carrega dados salvos do localStorage se houver)
+        let currentIndex = 0;
+        let masteredWords = JSON.parse(localStorage.getItem('masteredWords')) || [];
+        let currentFilter = 'all';
+        let searchQuery = '';
+
+        // Elementos do DOM
+        const flashcardContainer = document.getElementById('flashcard-container');
+        const flashcardInner = document.getElementById('flashcard-inner');
+        const cardFrontCategory = document.getElementById('card-front-category');
+        const cardFrontWord = document.getElementById('card-front-word');
+        const cardFrontStatus = document.getElementById('card-front-status');
+        const cardCurrentIndex = document.getElementById('card-current-index');
+        const cardTotalCount = document.getElementById('card-total-count');
+        
+        const cardBackTranslation = document.getElementById('card-back-translation');
+        const cardBackDefinition = document.getElementById('card-back-definition');
+        const cardBackCode = document.getElementById('card-back-code');
+        const cardBackContext = document.getElementById('card-back-context');
+        const cardBackCategory = document.getElementById('card-back-category');
+        const cardBackStatus = document.getElementById('card-back-status');
+
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+        const btnMastered = document.getElementById('btn-mastered');
+        const btnMasteredText = document.getElementById('btn-mastered-text');
+
+        const searchInput = document.getElementById('search-input');
+        const termsGrid = document.getElementById('terms-grid');
+        const noResults = document.getElementById('no-results');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        const categoryFilters = document.getElementById('category-filters');
+
+        // Inicialização do App
+        function init() {
+            updateFlashcard();
+            renderTermsList();
+            updateProgress();
+            setupEventListeners();
+        }
+
+        // Configurar Event Listeners
+        function setupEventListeners() {
+            // Rotacionar Flashcard
+            flashcardContainer.addEventListener('click', () => {
+                flashcardInner.classList.toggle('rotate-y-180');
+            });
+
+            // Botões de Navegação
+            btnPrev.addEventListener('click', (e) => {
+                e.stopPropagation();
+                resetRotation();
+                setTimeout(() => {
+                    currentIndex = (currentIndex === 0) ? wordsDatabase.length - 1 : currentIndex - 1;
+                    updateFlashcard();
+                }, 150);
+            });
+
+            btnNext.addEventListener('click', (e) => {
+                e.stopPropagation();
+                resetRotation();
+                setTimeout(() => {
+                    currentIndex = (currentIndex === wordsDatabase.length - 1) ? 0 : currentIndex + 1;
+                    updateFlashcard();
+                }, 150);
+            });
+
+            // Botão Dominado
+            btnMastered.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleMastery(wordsDatabase[currentIndex].id);
+            });
+
+            // Busca de Palavras
+            searchInput.addEventListener('input', (e) => {
+                searchQuery = e.target.value.toLowerCase();
+                renderTermsList();
+            });
+
+            // Filtros de Categoria
+            categoryFilters.addEventListener('click', (e) => {
+                if (e.target.classList.contains('cat-btn')) {
+                    // Resetar ativos anteriores
+                    document.querySelectorAll('.cat-btn').forEach(btn => {
+                        btn.classList.remove('bg-indigo-600', 'text-white');
+                        btn.classList.add('bg-slate-900', 'text-slate-400');
+                    });
+                    
+                    // Adicionar ativo no selecionado
+                    e.target.classList.add('bg-indigo-600', 'text-white');
+                    e.target.classList.remove('bg-slate-900', 'text-slate-400');
+                    
+                    currentFilter = e.target.getAttribute('data-cat');
+                    renderTermsList();
+                }
+            });
+        }
+
+        // Resetar rotação de volta para a frente antes de mudar de termo
+        function resetRotation() {
+            flashcardInner.classList.remove('rotate-y-180');
+        }
+
+        // Atualizar Informações do Flashcard Principal
+        function updateFlashcard() {
+            const currentItem = wordsDatabase[currentIndex];
+            const isMastered = masteredWords.includes(currentItem.id);
+
+            // Frente do Card
+            cardFrontCategory.textContent = currentItem.category;
+            cardFrontWord.textContent = currentItem.word;
+            cardCurrentIndex.textContent = currentIndex + 1;
+            cardTotalCount.textContent = wordsDatabase.length;
+
+            // Verso do Card
+            cardBackTranslation.textContent = currentItem.translation;
+            cardBackDefinition.textContent = currentItem.definition;
+            cardBackCode.textContent = currentItem.code_example;
+            cardBackContext.textContent = currentItem.context;
+            cardBackCategory.textContent = currentItem.category;
+
+            // Status Visual nos Elementos
+            const statusHTML = isMastered 
+                ? `<span class="text-emerald-400 flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> Dominado</span>`
+                : `<span class="text-slate-500 flex items-center gap-1"><i class="fa-regular fa-circle"></i> Não dominado</span>`;
+            
+            cardFrontStatus.innerHTML = statusHTML;
+            cardBackStatus.innerHTML = statusHTML;
+
+            // Atualizar Estilo do Botão de Mastery
+            if (isMastered) {
+                btnMastered.classList.remove('border-slate-800', 'text-slate-300');
+                btnMastered.classList.add('border-emerald-500', 'text-emerald-400', 'bg-emerald-950/10');
+                btnMasteredText.textContent = "Remover Domínio";
+            } else {
+                btnMastered.classList.add('border-slate-800', 'text-slate-300');
+                btnMastered.classList.remove('border-emerald-500', 'text-emerald-400', 'bg-emerald-950/10');
+                btnMasteredText.textContent = "Marcar Dominado";
+            }
+        }
+
+        // Alternar se a palavra foi dominada ou não
+        function toggleMastery(id) {
+            const index = masteredWords.indexOf(id);
+            if (index > -1) {
+                masteredWords.splice(index, 1);
+            } else {
+                masteredWords.push(id);
+            }
+            
+            // Grava o progresso localmente no navegador do usuário
+            localStorage.setItem('masteredWords', JSON.stringify(masteredWords));
+            
+            updateFlashcard();
+            updateProgress();
+            renderTermsList();
+        }
+
+        // Atualizar Barra e Texto de Progresso Geral
+        function updateProgress() {
+            const total = wordsDatabase.length;
+            const mastered = masteredWords.length;
+            const percentage = (mastered / total) * 100;
+
+            progressBar.style.width = `${percentage}%`;
+            progressText.textContent = `${mastered} / ${total}`;
+        }
+
+        // Renderizar a Lista/Dicionário Completo no Grid com Filtros Dinâmicos
+        function renderTermsList() {
+            termsGrid.innerHTML = '';
+            
+            // Aplicar Filtro de Busca e Categoria combinados
+            const filteredWords = wordsDatabase.filter(item => {
+                const matchesSearch = item.word.toLowerCase().includes(searchQuery) || 
+                                      item.translation.toLowerCase().includes(searchQuery) ||
+                                      item.category.toLowerCase().includes(searchQuery);
+                const matchesCategory = currentFilter === 'all' || item.category === currentFilter;
+                
+                return matchesSearch && matchesCategory;
+            });
+
+            if (filteredWords.length === 0) {
+                noResults.classList.remove('hidden');
+                return;
+            } else {
+                noResults.classList.add('hidden');
+            }
+
+            // Criar elementos no DOM para cada palavra do banco de dados
+            filteredWords.forEach(item => {
+                const isMastered = masteredWords.includes(item.id);
+                
+                const card = document.createElement('div');
+                card.className = `bg-[#0b1329] border ${isMastered ? 'border-emerald-500/40 bg-emerald-950/5' : 'border-slate-800 hover:border-slate-700'} rounded-xl p-5 transition-all flex flex-col justify-between hover:translate-y-[-2px]`;
+                
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start gap-2 mb-2">
+                            <span class="text-[10px] font-mono text-indigo-400 uppercase tracking-wider bg-slate-900 border border-slate-800 px-2 py-0.5 rounded-md">${item.category}</span>
+                            <button onclick="toggleMasteryDirectly(${item.id}, event)" class="text-xs transition ${isMastered ? 'text-emerald-400 hover:text-slate-400' : 'text-slate-600 hover:text-emerald-400'}">
+                                <i class="${isMastered ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle'} text-base"></i>
+                            </button>
+                        </div>
+                        <h4 class="font-bold text-lg text-white mb-1 flex items-center gap-2">
+                            ${item.word}
+                            <span class="text-xs font-normal text-slate-500">— ${item.translation}</span>
+                        </h4>
+                        <p class="text-xs text-slate-400 line-clamp-2">${item.definition}</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-800/80 flex justify-between items-center">
+                        <span class="text-[10px] font-mono text-slate-500">ID: #${item.id.toString().padStart(2, '0')}</span>
+                        <button onclick="openInFlashcard(${item.id})" class="text-xs font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1">
+                            Ver no Card <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                        </button>
+                    </div>
+                `;
+                
+                termsGrid.appendChild(card);
+            });
+        }
+
+        // Funções Globais chamadas por cliques diretos na lista de dicionário
+        window.openInFlashcard = function(id) {
+            const dbIndex = wordsDatabase.findIndex(w => w.id === id);
+            if (dbIndex > -1) {
+                currentIndex = dbIndex;
+                resetRotation();
+                updateFlashcard();
+                // Rolar a tela suavemente para o card acima
+                document.getElementById('flashcard-container').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        };
+
+        window.toggleMasteryDirectly = function(id, event) {
+            event.stopPropagation();
+            toggleMastery(id);
+        };
+
+        // Iniciar aplicação no carregamento da janela
+        window.onload = init;
+    </script>
+</body>
+</html>
